@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssmdemo.dao.StudentMapper">
+  <resultMap id="BaseResultMap" type="com.ssmdemo.bean.Student">
+    <id column="st_id" jdbcType="INTEGER" property="stId" />
+    <result column="st_name" jdbcType="VARCHAR" property="stName" />
+    <result column="st_sex" jdbcType="VARCHAR" property="stSex" />
+    <result column="st_email" jdbcType="VARCHAR" property="stEmail" />
+    <result column="te_id" jdbcType="INTEGER" property="teId" />
+  </resultMap>
+  <resultMap id="WithTeacherResultMap" type="com.ssmdemo.bean.Student">
+    <id column="st_id" jdbcType="INTEGER" property="stId" />
+    <result column="st_name" jdbcType="VARCHAR" property="stName" />
+    <result column="st_sex" jdbcType="VARCHAR" property="stSex" />
+    <result column="st_email" jdbcType="VARCHAR" property="stEmail" />
+    <result column="te_id" jdbcType="INTEGER" property="teId" />
+    <!--指定联合查询老师的封装-->
+    <association property="teacher" javaType="com.ssmdemo.bean.Teacher">
+      <id column="te_id" property="teId"></id>
+      <result column="te_name" property="teName"></result>
+    </association>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    st_id, st_name, st_sex, st_email, te_id
+  </sql>
+  <sql id="WithTeacher_Column_List">
+    s.st_id, s.st_name, s.st_sex, s.st_email, s.te_id, t.te_name
+  </sql>
+  <select id="selectByExample" parameterType="com.ssmdemo.bean.StudentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from student
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from student
+    where st_id = #{stId,jdbcType=INTEGER}
+  </select>
+  <!--查询员工同时带部门的-->
+  <select id="selectByExampleWithTeacher" resultMap="WithTeacherResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="WithTeacher_Column_List" />
+    from student s left join teacher t on s.te_id = t.te_id
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKeyWithTeacher" resultMap="WithTeacherResultMap">
+    select
+    <include refid="WithTeacher_Column_List" />
+    from student s left join teacher t on s.te_id = t.te_id
+    where st_id = #{stId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from student
+    where st_id = #{stId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.ssmdemo.bean.StudentExample">
+    delete from student
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.ssmdemo.bean.Student">
+    insert into student (st_id, st_name, st_sex, 
+      st_email, te_id)
+    values (#{stId,jdbcType=INTEGER}, #{stName,jdbcType=VARCHAR}, #{stSex,jdbcType=VARCHAR}, 
+      #{stEmail,jdbcType=VARCHAR}, #{teId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ssmdemo.bean.Student">
+    insert into student
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="stId != null">
+        st_id,
+      </if>
+      <if test="stName != null">
+        st_name,
+      </if>
+      <if test="stSex != null">
+        st_sex,
+      </if>
+      <if test="stEmail != null">
+        st_email,
+      </if>
+      <if test="teId != null">
+        te_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="stId != null">
+        #{stId,jdbcType=INTEGER},
+      </if>
+      <if test="stName != null">
+        #{stName,jdbcType=VARCHAR},
+      </if>
+      <if test="stSex != null">
+        #{stSex,jdbcType=VARCHAR},
+      </if>
+      <if test="stEmail != null">
+        #{stEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="teId != null">
+        #{teId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.ssmdemo.bean.StudentExample" resultType="java.lang.Long">
+    select count(*) from student
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update student
+    <set>
+      <if test="record.stId != null">
+        st_id = #{record.stId,jdbcType=INTEGER},
+      </if>
+      <if test="record.stName != null">
+        st_name = #{record.stName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stSex != null">
+        st_sex = #{record.stSex,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stEmail != null">
+        st_email = #{record.stEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="record.teId != null">
+        te_id = #{record.teId,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update student
+    set st_id = #{record.stId,jdbcType=INTEGER},
+      st_name = #{record.stName,jdbcType=VARCHAR},
+      st_sex = #{record.stSex,jdbcType=VARCHAR},
+      st_email = #{record.stEmail,jdbcType=VARCHAR},
+      te_id = #{record.teId,jdbcType=INTEGER}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ssmdemo.bean.Student">
+    update student
+    <set>
+      <if test="stName != null">
+        st_name = #{stName,jdbcType=VARCHAR},
+      </if>
+      <if test="stSex != null">
+        st_sex = #{stSex,jdbcType=VARCHAR},
+      </if>
+      <if test="stEmail != null">
+        st_email = #{stEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="teId != null">
+        te_id = #{teId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where st_id = #{stId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ssmdemo.bean.Student">
+    update student
+    set st_name = #{stName,jdbcType=VARCHAR},
+      st_sex = #{stSex,jdbcType=VARCHAR},
+      st_email = #{stEmail,jdbcType=VARCHAR},
+      te_id = #{teId,jdbcType=INTEGER}
+    where st_id = #{stId,jdbcType=INTEGER}
+  </update>
+</mapper>
